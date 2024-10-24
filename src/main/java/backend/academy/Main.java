@@ -1,11 +1,11 @@
 package backend.academy;
 
-import backend.academy.controller.Controller;
-import lombok.experimental.UtilityClass;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@UtilityClass
+@SpringBootApplication
 public class Main {
     public static void main(String[] args) {
-        new Controller().start(System.in, System.out);
+        SpringApplication.run(Main.class, args);
     }
 }

@@ -15,7 +15,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.BDDAssertions.catchException;
 
-class ControllerTest {
+class ConsoleControllerTest {
     @Test
     void getRenderThrows() throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -23,7 +23,7 @@ class ControllerTest {
              InputStream inputTest = new ByteArrayInputStream
                  ("aboba".getBytes())) {
             Exception ex = catchException(() -> {
-                Controller.getRender(out, new Scanner(inputTest));
+                ConsoleController.getRender(out, new Scanner(inputTest));
             });
             assertThat(ex).isInstanceOf(RenderNotFoundException.class);
         }
@@ -36,7 +36,7 @@ class ControllerTest {
              InputStream inputTest = new ByteArrayInputStream
                  ("aboba".getBytes())) {
             Exception ex = catchException(() -> {
-                Controller.getGenerator(out, new Scanner(inputTest));
+                ConsoleController.getGenerator(out, new Scanner(inputTest));
             });
             assertThat(ex).isInstanceOf(GeneratorNotFoundException.class);
         }
@@ -49,7 +49,7 @@ class ControllerTest {
              InputStream inputTest = new ByteArrayInputStream
                  ("aboba".getBytes())) {
             Exception ex = catchException(() -> {
-                Controller.getSolver(out, new Scanner(inputTest));
+                ConsoleController.getSolver(out, new Scanner(inputTest));
             });
             assertThat(ex).isInstanceOf(SolverNotFoundException.class);
         }
@@ -62,7 +62,7 @@ class ControllerTest {
              InputStream inputTest = new ByteArrayInputStream
                  (("1\n" + "1\n" + "1\n" + "aboba").getBytes())) {
             Exception ex = catchException(() -> {
-                Controller.readAndGenerateMaze(out, new Scanner(inputTest));
+                ConsoleController.readAndGenerateMaze(out, new Scanner(inputTest));
             });
             assertThat(ex).isInstanceOf(GeneratorNotFoundException.class);
         }
@@ -75,7 +75,7 @@ class ControllerTest {
              InputStream inputTest = new ByteArrayInputStream
                  (("-1\n" + "1\n" + "1\n" + "DFS").getBytes())) {
             Exception ex = catchException(() -> {
-                Controller.readAndGenerateMaze(out, new Scanner(inputTest));
+                ConsoleController.readAndGenerateMaze(out, new Scanner(inputTest));
             });
             assertThat(ex).isInstanceOf(LabyrinthSizeSmallException.class);
         }
@@ -88,7 +88,7 @@ class ControllerTest {
              InputStream inputTest = new ByteArrayInputStream
                  (("-1\n" + "1\n" + "2\n" + "BSP").getBytes())) {
             Exception ex = catchException(() -> {
-                Controller.readAndGenerateMaze(out, new Scanner(inputTest));
+                ConsoleController.readAndGenerateMaze(out, new Scanner(inputTest));
             });
             assertThat(ex).isInstanceOf(LabyrinthSizeSmallException.class);
         }
@@ -101,7 +101,7 @@ class ControllerTest {
              InputStream inputTest = new ByteArrayInputStream
                  (("10\n" + "10\n" + "aboba\n" + "BSP").getBytes())) {
             Exception ex = catchException(() -> {
-                Controller.readAndGenerateMaze(out, new Scanner(inputTest));
+                ConsoleController.readAndGenerateMaze(out, new Scanner(inputTest));
             });
             assertThat(ex).isInstanceOf(RuntimeException.class);
         }

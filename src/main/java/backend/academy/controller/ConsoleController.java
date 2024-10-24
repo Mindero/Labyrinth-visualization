@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-public class Controller {
+public class ConsoleController {
     private static final Map<String, Class<?>> ALL_GENERATORS = new HashMap<>() {{
         put("DFS", DfsGenerator.class);
         put("BSP", BspGenerator.class);
@@ -36,7 +36,7 @@ public class Controller {
         put("Символьный", ConsoleRenderer.class);
     }};
 
-    public Controller() {
+    public ConsoleController() {
     }
 
     // Получить Generator по вводу из консоли

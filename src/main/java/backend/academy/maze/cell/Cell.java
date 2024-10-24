@@ -4,7 +4,9 @@ public record Cell(Coordinate coordinate, Type cellType) {
     public Cell(int row, int col, int isPassage) {
         this(new Coordinate(row, col), (isPassage == 1) ? Type.PASSAGE : Type.WALL);
     }
-
+    public Cell(int row, int col, boolean isPassage) {
+        this(new Coordinate(row, col), (isPassage) ? Type.PASSAGE : Type.WALL);
+    }
     public int row() {
         return coordinate.row();
     }

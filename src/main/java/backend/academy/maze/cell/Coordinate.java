@@ -1,6 +1,8 @@
 package backend.academy.maze.cell;
 
-public record Coordinate(int row, int column) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record Coordinate(@JsonProperty int row, @JsonProperty int column) {
     public Coordinate(Coordinate coordinate, Direction dir) {
         this(coordinate.row + dir.getCoordinate().row,
             coordinate.column() + dir.getCoordinate().column);
