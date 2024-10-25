@@ -39,7 +39,7 @@ public class SpringController {
     public MazeDto labyrinth(@RequestBody LabyrinthDto labyrinthDto)
         throws GeneratorNotFoundException, LabyrinthSizeSmallException {
         Maze maze = labyrinthService.generateLabyrinth(labyrinthDto.generatorName(),
-            labyrinthDto.height(), labyrinthDto.width());
+            labyrinthDto.height(), labyrinthDto.width(), labyrinthDto.idealMaze());
         // перевод в dto....
         return MazeDto.fromMaze(maze);
     }

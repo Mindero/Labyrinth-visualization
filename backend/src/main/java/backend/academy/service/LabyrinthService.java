@@ -59,10 +59,11 @@ public class LabyrinthService {
         return ALL_SOLVERS.keySet().stream().toList();
     }
 
-    public Maze generateLabyrinth (String generatorName, int height, int width)
+    public Maze generateLabyrinth (String generatorName, int height, int width, boolean idealMaze)
         throws GeneratorNotFoundException, LabyrinthSizeSmallException {
         Generator generator = getGenerator(generatorName);
-        return generator.generateIdealMaze(height, width);
+        return (idealMaze) ? generator.generateIdealMaze(height, width)
+                           : generator.generateNotIdealMaze(height, width);
     }
 
     public List<Coordinate> findShortestPath (String solverName, Maze maze, Coordinate start, Coordinate end)
