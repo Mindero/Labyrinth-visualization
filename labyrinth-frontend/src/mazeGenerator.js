@@ -27,6 +27,7 @@ const MazeGenerator = () => {
   const [mazeIsCreated, setMazeIsCreated] = useState(false);
   const [shortestPath, setShortestPath] = useState([]);
   const [algoSimulate, setAlgoSimulate] = useState([]);
+  const [visited, setVisited] = useState([]);
   const [start, setStart] = useState(null);
   const [end, setEnd] = useState(null);
 
@@ -77,12 +78,31 @@ const MazeGenerator = () => {
           start: {row : start.row, column : start.col}, end : {row : end.row, column : end.col}}),
       });
       const data = await response.json();
-      setAlgoSimulate(data);
+      visualizeAlgorithm(data);
     } catch (error) {
       console.error('Error fetching shortestPath:', error);
     }
   }
 
+  const visualizeAlgorithm = (data) => {
+      const visitedPoints = data;
+      // console.log(data);
+      // Постепенная отрисовка посещенных точек
+      let step = 0;
+      const visualizeSteps = () => {
+        if (step < visitedPoints.length) {
+          const currentPoint = visitedPoints[step];
+          setVisited((prev) => [...prev, currentPoint]);
+          setTimeout(visualizeSteps, 20); // Задержка 50 мс для каждого шага
+          step++;
+        } else {
+          // Когда точки посещены, отрисовываем итоговый путь
+          findShortestPath();
+        }
+      };
+
+      visualizeSteps();
+  };
   const findShortestPath = async () => {
     try{
       const response = await fetch('http://localhost:8080/labyrinth/findShortestPath', {
@@ -145,68 +165,53 @@ const MazeGenerator = () => {
       getAllSolvers();
   }, []);
 
-  // Функция для визуализации пути
-  useEffect(() => {
-    if (maze.length > 0 && canvasRef.current){
-      const newMaze = [...maze];
-      shortestPath.forEach((val, index) => {
-        newMaze[val.row][val.column] = 
-          (index === 0) ? START_SHORTEST_PATH
-                        : (index + 1 === shortestPath.length) ? END_SHORTEST_PATH
-                                                              : IN_SHORTEST_PATH;
+  // Функция для отрисовки лабиринта на canvas
+  const drawMaze = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    maze.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        ctx.fillStyle = (cell == WALL) ? 'black' : 'white';
+        ctx.fillRect(colIndex * cellSize, rowIndex * cellSize, cellSize, cellSize);
       });
-      setMaze(newMaze);
-    }
-  }, [shortestPath]);
+    });
 
-  // Функция для визуализации лабиринта на Canvas
+    // Отрисовка просмотренных алгоритмом клеток
+    if (visited.length > 0){
+      // console.log("visited", visited);
+      ctx.fillStyle = 'lightblue';
+      visited.forEach(cell => {
+        ctx.fillRect(cell.column * cellSize, cell.row * cellSize, cellSize, cellSize);
+      });
+    }
+
+    // Отрисовка найденного пути
+    if (shortestPath.length > 0) {
+      ctx.fillStyle = 'green';
+      // console.log("shortestPath", shortestPath);
+      shortestPath.forEach(cell => {
+        ctx.fillRect(cell.column * cellSize, cell.row * cellSize, cellSize, cellSize);
+      });
+    }
+
+    // Отрисовка начальной и конечной точек
+    if (start) {
+      ctx.fillStyle = 'blue';
+      ctx.fillRect(start.col * cellSize, start.row * cellSize, cellSize, cellSize);
+    }
+    if (end) {
+      ctx.fillStyle = 'red';
+      ctx.fillRect(end.col * cellSize, end.row * cellSize, cellSize, cellSize);
+    }
+
+  };
+
+  // Вызывает функцию отрисовки лабиринта, если какой-то из параметров меняется
   useEffect(() => {
-    if (maze.length > 0 && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      
-      
-      // Очищаем canvas перед отрисовкой
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Отрисовка лабиринта
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          if (maze[y][x] === WALL) { // Предполагается, что 1 - это стена
-            ctx.fillStyle = 'black';
-          } else if (maze[y][x] === PASSAGE) {
-            ctx.fillStyle = 'white'; // Пустое пространство
-          }
-          else if (maze[y][x] === IN_SHORTEST_PATH){
-            ctx.fillStyle = 'green'; // На кратчайшем пути
-          }
-          else if (maze[y][x] === START_SHORTEST_PATH){
-            ctx.fillStyle = 'blue';
-          }
-          else if(maze[y][x] === END_SHORTEST_PATH){
-            ctx.fillStyle = 'red';
-          }
-          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-        }
-      }
-    }
-  }, [maze]);
-
-  // Рисуем, какие клетки пользователь выбрал стартовой и конечной 
-  useEffect(() => {
-    if (maze.length > 0 && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      if (start){
-        ctx.fillStyle = 'blue';
-        ctx.fillRect(start.col * cellSize, start.row * cellSize, cellSize, cellSize);
-      }
-      if (end){
-        ctx.fillStyle = 'red';
-        ctx.fillRect(end.col * cellSize, end.row * cellSize, cellSize, cellSize);
-      }
-    }
-  }, [start, end]);
+    drawMaze();
+  }, [maze, start, end, visited, shortestPath]);
 
   // Обработка клика по canvas
   const handleCanvasClick = (event) => {
