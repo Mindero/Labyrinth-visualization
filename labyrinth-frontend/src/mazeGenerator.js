@@ -321,11 +321,11 @@ const MazeGenerator = () => {
   };
 
   return (
-    <div style={{ textAlign: 'center' }}>
-      <h1>Maze Generator and Pathfinding Visualizer</h1>
-
+    <div className='app-container'>
+      {/* <h1>Maze Generator and Pathfinding Visualizer</h1> */}
+      <div className='settings'>
       { !mazeIsCreated ? (
-        <div>
+        <div className='settings-text'>
           <div>
             <label>Select Algorithm: </label>
               <select value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
@@ -383,7 +383,7 @@ const MazeGenerator = () => {
           <button onClick={generateMaze}>Generate Maze</button>
         </div>
       ) : (
-        <div>
+        <div className='settings-text'>
           <div>
             <label>Select algorithm to find shortest path: </label>
               <select value={solver} onChange={(e) => setSolver(e.target.value)}>
@@ -399,8 +399,9 @@ const MazeGenerator = () => {
           <button onClick={resetMaze}>Generate new maze</button>
         </div>
       )}
+      </div>
 
-      <div>
+      <div className='maze'>
         <canvas
           ref={canvasRef}
           width="500"
