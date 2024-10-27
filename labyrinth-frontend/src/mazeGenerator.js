@@ -25,13 +25,28 @@ const MazeGenerator = () => {
   const [cols, setCols] = useState(10);
   const [maze, setMaze] = useState([]);
   const [mazeIsCreated, setMazeIsCreated] = useState(false);
-  const [shortestPath, setShortestPath] = useState([]);
-  const [visited, setVisited] = useState([]);
+
+  // Начальная и конечная точка в поиске кратчайшего пути
   const [start, setStart] = useState(null);
   const [end, setEnd] = useState(null);
-
+  
+  // ShortestPath
+  const [tempShortestPath, setTempShortestPath] = useState([]);
+  const [shortestPath, setShortestPath] = useState([]);
+  const [stepShortestPath, setStepShortestPath] = useState(0);
+  // Флаг, показывающий можно ли кратчайший путь
+  const [shortestPathIsRunning, setShortestPathIsRunning] = useState(false);
+  
+  // AlgoSimualte
+  const [visited, setVisited] = useState([]);
+  const [tempVisited, setTempVisited] = useState([]); 
+  const [stepVisited, setStepVisited] = useState(0);
+  // Флаг, показывающий можно ли визуализировать алгоритм кратчайшего пути
+  const [algoSimulateIsRunning, setAlgoSimulateIsRunning] = useState(false);
+  
   const canvasRef = useRef(null);
   
+  // Получение данных алгоритма генерации и алгоритма нахождения кратчайшего пути
   const [algorithm, setAlgorithm] = useState('');
   const [generators, setGenerators] = useState([]);
   const [solver, setSolver] = useState('');
@@ -64,6 +79,7 @@ const MazeGenerator = () => {
   };
 
   const simulateSolverAlgo = async () => {
+    setAlgoSimulateIsRunning(false);
     try{
       const response = await fetch('http://localhost:8080/labyrinth/simulateAlgo', {
         method: 'POST',
@@ -77,30 +93,36 @@ const MazeGenerator = () => {
           start: {row : start.row, column : start.col}, end : {row : end.row, column : end.col}}),
       });
       const data = await response.json();
-      visualizeAlgorithm(data);
+      setTempVisited(data);
+      setStepVisited(0);
+      setAlgoSimulateIsRunning(true);
     } catch (error) {
       console.error('Error fetching shortestPath:', error);
     }
   }
 
-  const visualizeAlgorithm = (data) => {
-      // console.log(data);
-      // Постепенная отрисовка посещенных точек
-      let step = 0;
-      const visualizeSteps = () => {
-        if (step < data.length) {
-          const currentPoint = data[step];
-          setVisited((prev) => [...prev, currentPoint]);
-          setTimeout(visualizeSteps, 20); // Задержка 50 мс для каждого шага
-          step++;
-        } else {
-          // Когда точки посещены, отрисовываем итоговый путь
-          findShortestPath();
-        }
-      };
+  // Основная логика визуализации работы алгоритма
+  useEffect(() => {
+    if (algoSimulateIsRunning && stepVisited < tempVisited.length) {
+      const currentPoint = tempVisited[stepVisited];
+      
+      // Добавляем текущую точку в посещённые
+      setVisited((prev) => [...prev, currentPoint]);
+      
+      // Запускаем следующий шаг с задержкой
+      const timer = setTimeout(() => {
+        setStepVisited((prevStep) => prevStep + 1);
+      }, 20);
 
-      visualizeSteps();
-  };
+      // Очищаем таймер при размонтировании или остановке
+      return () => clearTimeout(timer);
+    } else if (stepVisited >= tempVisited.length && algoSimulateIsRunning) {
+      // Если точки закончились, строим итоговый путь
+      setAlgoSimulateIsRunning(false);
+      findShortestPath();
+    }
+  }, [stepVisited, algoSimulateIsRunning, tempVisited]);
+  
   const findShortestPath = async () => {
     try{
       const response = await fetch('http://localhost:8080/labyrinth/findShortestPath', {
@@ -115,7 +137,9 @@ const MazeGenerator = () => {
           start: {row : start.row, column : start.col}, end : {row : end.row, column : end.col}}),
       });
       const data = await response.json();
-      visualizeShortestPath(data);
+      setTempShortestPath(data);
+      setStepShortestPath(0);
+      setShortestPathIsRunning(true);
     } catch (error) {
       console.error('Error fetching shortestPath:', error);
     }
@@ -125,6 +149,7 @@ const MazeGenerator = () => {
     // Постепенная отрисовка кратчайшего пути
     let step = 0;
     const visualizeSteps = () => {
+      if (algoSimulateIsRunning) return;
       if (step < data.length) {
         const currentPoint = data[step];
         setShortestPath((prev) => [...prev, currentPoint]);
@@ -134,7 +159,28 @@ const MazeGenerator = () => {
     };
 
     visualizeSteps();
-};
+  };
+  
+  // Основная логика визуализации работы алгоритма
+  useEffect(() => {
+    if (shortestPathIsRunning && stepShortestPath < tempShortestPath.length) {
+      const currentPoint = tempShortestPath[stepShortestPath];
+      
+      // Добавляем текущую точку в посещённые
+      setShortestPath((prev) => [...prev, currentPoint]);
+      
+      // Запускаем следующий шаг с задержкой
+      const timer = setTimeout(() => {
+        setStepShortestPath((prevStep) => prevStep + 1);
+      }, 20);
+
+      // Очищаем таймер при размонтировании или остановке
+      return () => clearTimeout(timer);
+    } else if (stepShortestPath >= tempShortestPath.length && shortestPathIsRunning) {
+      // Если точки закончились, то заканчиваем визуализацию
+      setShortestPathIsRunning(false);
+    }
+  }, [stepShortestPath, shortestPathIsRunning, tempShortestPath]);
 
   // Загружаем имена всех генераторов и решателей.
   useEffect(() => {
@@ -240,12 +286,21 @@ const MazeGenerator = () => {
     else{
       if (end.row === row && end.col === col){
         setEnd(null);
+        resetVisualization();
       }
       else if(start.row === row && start.col === col){
         setStart(null);
+        resetVisualization();
       }
     }
   };
+
+  const resetVisualization = () => {
+    setAlgoSimulateIsRunning(false);
+    setShortestPathIsRunning(false);
+    setShortestPath([]);
+    setVisited([]);
+  }  
 
   // Обнуление лабиринта
   const resetMaze = () => {
@@ -256,7 +311,7 @@ const MazeGenerator = () => {
     setVisited([]);
     setStart(null);
     setEnd(null);
-
+    resetVisualization();
     // Очищаем canvas
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
