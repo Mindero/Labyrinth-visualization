@@ -26,7 +26,6 @@ const MazeGenerator = () => {
   const [maze, setMaze] = useState([]);
   const [mazeIsCreated, setMazeIsCreated] = useState(false);
   const [shortestPath, setShortestPath] = useState([]);
-  const [algoSimulate, setAlgoSimulate] = useState([]);
   const [visited, setVisited] = useState([]);
   const [start, setStart] = useState(null);
   const [end, setEnd] = useState(null);
@@ -85,13 +84,12 @@ const MazeGenerator = () => {
   }
 
   const visualizeAlgorithm = (data) => {
-      const visitedPoints = data;
       // console.log(data);
       // Постепенная отрисовка посещенных точек
       let step = 0;
       const visualizeSteps = () => {
-        if (step < visitedPoints.length) {
-          const currentPoint = visitedPoints[step];
+        if (step < data.length) {
+          const currentPoint = data[step];
           setVisited((prev) => [...prev, currentPoint]);
           setTimeout(visualizeSteps, 20); // Задержка 50 мс для каждого шага
           step++;
@@ -117,11 +115,26 @@ const MazeGenerator = () => {
           start: {row : start.row, column : start.col}, end : {row : end.row, column : end.col}}),
       });
       const data = await response.json();
-      setShortestPath(data);
+      visualizeShortestPath(data);
     } catch (error) {
       console.error('Error fetching shortestPath:', error);
     }
   }
+
+  const visualizeShortestPath = (data) => {
+    // Постепенная отрисовка кратчайшего пути
+    let step = 0;
+    const visualizeSteps = () => {
+      if (step < data.length) {
+        const currentPoint = data[step];
+        setShortestPath((prev) => [...prev, currentPoint]);
+        setTimeout(visualizeSteps, 20); // Задержка 50 мс для каждого шага
+        step++;
+      }
+    };
+
+    visualizeSteps();
+};
 
   // Загружаем имена всех генераторов и решателей.
   useEffect(() => {
@@ -173,7 +186,7 @@ const MazeGenerator = () => {
 
     maze.forEach((row, rowIndex) => {
       row.forEach((cell, colIndex) => {
-        ctx.fillStyle = (cell == WALL) ? 'black' : 'white';
+        ctx.fillStyle = (cell === WALL) ? 'black' : 'white';
         ctx.fillRect(colIndex * cellSize, rowIndex * cellSize, cellSize, cellSize);
       });
     });
@@ -224,13 +237,23 @@ const MazeGenerator = () => {
     } else if (!end) {
       setEnd({ row, col });
     }
+    else{
+      if (end.row === row && end.col === col){
+        setEnd(null);
+      }
+      else if(start.row === row && start.col === col){
+        setStart(null);
+      }
+    }
   };
 
+  // Обнуление лабиринта
   const resetMaze = () => {
     setMaze([]);
     setRows(10);
     setCols(10);
     setShortestPath([]);
+    setVisited([]);
     setStart(null);
     setEnd(null);
 
