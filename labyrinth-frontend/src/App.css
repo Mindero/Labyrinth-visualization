@@ -28,3 +28,7 @@
 .settings-text{
   text-align: center;
 }
+
+.button-active:active {
+  border: 5px solid green;
+}

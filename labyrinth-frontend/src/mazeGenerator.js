@@ -25,6 +25,9 @@ const MazeGenerator = () => {
   const [cols, setCols] = useState(10);
   const [maze, setMaze] = useState([]);
   const [mazeIsCreated, setMazeIsCreated] = useState(false);
+  const [isEnableToAdd, setIsEnableToAdd] = useState(false);
+  const [obstacles, setObstacles] = useState([]);
+  const [toVisualizeObstacles, setToVisualizeObstacles] = useState(true);
 
   // Начальная и конечная точка в поиске кратчайшего пути
   const [start, setStart] = useState(null);
@@ -79,6 +82,7 @@ const MazeGenerator = () => {
   };
 
   const simulateSolverAlgo = async () => {
+    resetVisualization();
     setAlgoSimulateIsRunning(false);
     try{
       const response = await fetch('http://localhost:8080/labyrinth/simulateAlgo', {
@@ -90,7 +94,8 @@ const MazeGenerator = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({solverName : solver, mazeDto: {maze: convertMazeToJson(maze)}, 
-          start: {row : start.row, column : start.col}, end : {row : end.row, column : end.col}}),
+          start: {row : start.row, column : start.col}, end : {row : end.row, column : end.col},
+          obstacles: (isEnableToAdd) ? obstacles : []}),
       });
       const data = await response.json();
       setTempVisited(data);
@@ -134,7 +139,8 @@ const MazeGenerator = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({solverName : solver, mazeDto: {maze:convertMazeToJson(maze)}, 
-          start: {row : start.row, column : start.col}, end : {row : end.row, column : end.col}}),
+          start: {row : start.row, column : start.col}, end : {row : end.row, column : end.col},
+          obstacles: (isEnableToAdd) ? obstacles : []}),
       });
       const data = await response.json();
       setTempShortestPath(data);
@@ -144,22 +150,6 @@ const MazeGenerator = () => {
       console.error('Error fetching shortestPath:', error);
     }
   }
-
-  const visualizeShortestPath = (data) => {
-    // Постепенная отрисовка кратчайшего пути
-    let step = 0;
-    const visualizeSteps = () => {
-      if (algoSimulateIsRunning) return;
-      if (step < data.length) {
-        const currentPoint = data[step];
-        setShortestPath((prev) => [...prev, currentPoint]);
-        setTimeout(visualizeSteps, 20); // Задержка 50 мс для каждого шага
-        step++;
-      }
-    };
-
-    visualizeSteps();
-  };
   
   // Основная логика визуализации работы алгоритма
   useEffect(() => {
@@ -237,9 +227,9 @@ const MazeGenerator = () => {
       });
     });
 
+    
     // Отрисовка просмотренных алгоритмом клеток
     if (visited.length > 0){
-      // console.log("visited", visited);
       ctx.fillStyle = 'lightblue';
       visited.forEach(cell => {
         ctx.fillRect(cell.column * cellSize, cell.row * cellSize, cellSize, cellSize);
@@ -249,7 +239,6 @@ const MazeGenerator = () => {
     // Отрисовка найденного пути
     if (shortestPath.length > 0) {
       ctx.fillStyle = 'green';
-      // console.log("shortestPath", shortestPath);
       shortestPath.forEach(cell => {
         ctx.fillRect(cell.column * cellSize, cell.row * cellSize, cellSize, cellSize);
       });
@@ -264,13 +253,22 @@ const MazeGenerator = () => {
       ctx.fillStyle = 'red';
       ctx.fillRect(end.col * cellSize, end.row * cellSize, cellSize, cellSize);
     }
-
+    if (toVisualizeObstacles){
+      ctx.strokeStyle = 'black';
+      obstacles.forEach(cell => {
+        ctx.strokeRect(cell.column * cellSize, cell.row * cellSize, cellSize, cellSize);
+      });
+    }
   };
 
+  const enableClickDijkstra = () => {
+    setIsEnableToAdd(isEnableToAdd ^ true);
+  };
+  
   // Вызывает функцию отрисовки лабиринта, если какой-то из параметров меняется
   useEffect(() => {
     drawMaze();
-  }, [maze, start, end, visited, shortestPath]);
+  }, [maze, start, end, visited, shortestPath, obstacles, toVisualizeObstacles]);
 
   // Обработка клика по canvas
   const handleCanvasClick = (event) => {
@@ -278,20 +276,35 @@ const MazeGenerator = () => {
     const rect = canvas.getBoundingClientRect();
     const col = Math.floor((event.clientX - rect.left) / cellSize);
     const row = Math.floor((event.clientY - rect.top) / cellSize);
-    if (!start) {
-      setStart({ row, col });
-    } else if (!end) {
-      setEnd({ row, col });
+    if (isEnableToAdd){
+      setObstacles([...obstacles, {row, column: col}]);
     }
     else{
-      if (end.row === row && end.col === col){
-        setEnd(null);
-        resetVisualization();
+      if (!start) {
+        setStart({ row, col });
+      } else if (!end) {
+        setEnd({ row, col });
       }
-      else if(start.row === row && start.col === col){
-        setStart(null);
-        resetVisualization();
+      else{
+        if (end.row === row && end.col === col){
+          setEnd(null);
+          resetVisualization();
+        }
+        else if(start.row === row && start.col === col){
+          setStart(null);
+          resetVisualization();
+        }
       }
+    }
+  };
+
+  const solverChanges = (value) => {
+    setSolver(value);
+    if (value === "Дейкстра"){
+      setToVisualizeObstacles(true);
+    }
+    else{
+      setToVisualizeObstacles(false);
     }
   };
 
@@ -301,7 +314,7 @@ const MazeGenerator = () => {
     setShortestPath([]);
     setVisited([]);
   }  
-
+  
   // Обнуление лабиринта
   const resetMaze = () => {
     setMaze([]);
@@ -311,6 +324,7 @@ const MazeGenerator = () => {
     setVisited([]);
     setStart(null);
     setEnd(null);
+    setObstacles([]);
     resetVisualization();
     // Очищаем canvas
     const canvas = canvasRef.current;
@@ -386,7 +400,7 @@ const MazeGenerator = () => {
         <div className='settings-text'>
           <div>
             <label>Select algorithm to find shortest path: </label>
-              <select value={solver} onChange={(e) => setSolver(e.target.value)}>
+              <select value={solver} onChange={(e) => solverChanges(e.target.value)}>
               {/* Отображаем загруженные данные */}
               {solvers.map((option, index) => (
                 <option key={index} value={option}>
@@ -397,6 +411,9 @@ const MazeGenerator = () => {
           </div>
           <button onClick={simulateSolverAlgo} disabled = {!start || !end}>Find shortest path</button>
           <button onClick={resetMaze}>Generate new maze</button>
+          <button onClick={enableClickDijkstra} className = 'active-button'> 
+            Добавить препятствия
+          </button>
         </div>
       )}
       </div>

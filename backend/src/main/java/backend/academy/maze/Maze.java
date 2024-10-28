@@ -2,6 +2,7 @@ package backend.academy.maze;
 
 import backend.academy.maze.cell.Cell;
 import backend.academy.maze.cell.Coordinate;
+import java.util.List;
 
 public class Maze {
     private final int height;
@@ -76,5 +77,14 @@ public class Maze {
             }
         }
         throw new RuntimeException();
+    }
+
+    public Maze addObstacles (List<Coordinate> obstacles){
+        Cell[][] newMaze = maze.clone();
+        obstacles.forEach(coordinate -> {
+            newMaze[coordinate.column()][coordinate.row()] =
+                new Cell(coordinate, Cell.Type.OBSTACLE);
+        });
+        return new Maze(height, width, newMaze);
     }
 }

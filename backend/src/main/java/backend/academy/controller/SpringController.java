@@ -47,14 +47,14 @@ public class SpringController {
     @PostMapping(path="/findShortestPath", consumes = "application/json")
     public List<Coordinate> findShortestPath (@RequestBody SolverDto solverDto) throws SolverNotFoundException {
         Maze maze = MazeDto.convertToMaze(solverDto.mazeDto());
-        return labyrinthService.findShortestPath(solverDto.solverName(), maze, solverDto.start()
-            , solverDto.end());
+        return labyrinthService.findShortestPath(solverDto.solverName(), maze.addObstacles(solverDto.obstacles()),
+            solverDto.start(), solverDto.end());
     }
 
     @PostMapping(path="/simulateAlgo", consumes = "application/json")
     public List<Coordinate> simulateSolverAlgo(@RequestBody SolverDto solverDto) throws SolverNotFoundException {
         Maze maze = MazeDto.convertToMaze(solverDto.mazeDto());
-        return labyrinthService.simulateSolverAlgo(solverDto.solverName(), maze, solverDto.start()
-            , solverDto.end());
+        return labyrinthService.simulateSolverAlgo(solverDto.solverName(), maze.addObstacles(solverDto.obstacles()),
+            solverDto.start(), solverDto.end());
     }
 }

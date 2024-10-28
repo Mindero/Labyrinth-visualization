@@ -25,11 +25,13 @@ public record Cell(Coordinate coordinate, Type cellType) {
 
     public int getWeight() {
         // TODO: сделать разный вес под разный тип клетки
+        if (cellType == Type.OBSTACLE) return 5;
         return 1;
     }
 
     public enum Type {
         WALL,
-        PASSAGE
+        PASSAGE,
+        OBSTACLE
     }
 }
