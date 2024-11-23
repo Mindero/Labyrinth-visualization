@@ -82,7 +82,7 @@ public class Maze {
     public Maze addObstacles (List<Coordinate> obstacles){
         Cell[][] newMaze = maze.clone();
         obstacles.forEach(coordinate -> {
-            newMaze[coordinate.column()][coordinate.row()] =
+            newMaze[coordinate.row()][coordinate.column()] =
                 new Cell(coordinate, Cell.Type.OBSTACLE);
         });
         return new Maze(height, width, newMaze);

@@ -8,7 +8,8 @@ import backend.academy.maze.Maze;
  */
 public interface Generator {
     /**
-     * Генерирует идеальный лабиринт
+     * Генерирует идеальный лабиринт.
+     * Лабиринт - идеальный, из каждой точки существует ровно один путь к любой другой точке.
      *
      * @param height высота лабиринта
      * @param width  ширина лабиринта
@@ -17,7 +18,8 @@ public interface Generator {
     Maze generateIdealMaze(int height, int width) throws LabyrinthSizeSmallException;
 
     /**
-     * Генерирует не идеальный лабиринт
+     * Генерирует не идеальный лабиринт.
+     * Лабиринт не идеальный, если в нём образуются циклы.
      *
      * @param height высота лабиринта
      * @param width  ширина лабиринта

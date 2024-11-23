@@ -95,7 +95,7 @@ const MazeGenerator = () => {
         },
         body: JSON.stringify({solverName : solver, mazeDto: {maze: convertMazeToJson(maze)}, 
           start: {row : start.row, column : start.col}, end : {row : end.row, column : end.col},
-          obstacles: (isEnableToAdd) ? obstacles : []}),
+          obstacles: (toVisualizeObstacles) ? obstacles : []}),
       });
       const data = await response.json();
       setTempVisited(data);
@@ -140,7 +140,7 @@ const MazeGenerator = () => {
         },
         body: JSON.stringify({solverName : solver, mazeDto: {maze:convertMazeToJson(maze)}, 
           start: {row : start.row, column : start.col}, end : {row : end.row, column : end.col},
-          obstacles: (isEnableToAdd) ? obstacles : []}),
+          obstacles: (toVisualizeObstacles) ? obstacles : []}),
       });
       const data = await response.json();
       setTempShortestPath(data);
